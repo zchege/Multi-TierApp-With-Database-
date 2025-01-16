@@ -86,6 +86,7 @@ stages:
         steps:
           - task: Maven@4
             inputs:
+              azureSubscription: 'devopshack-conn'
               mavenPomFile: 'pom.xml'
               goals: 'deploy'
               publishJUnitResults: true
