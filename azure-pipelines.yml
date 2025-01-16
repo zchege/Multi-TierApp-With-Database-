@@ -1,0 +1,100 @@
+
+trigger: 
+   none
+
+pool:
+  name: DevOpsPool
+  demands:
+    - agent.name -equals MyAgent
+
+stages:
+  - stage: compile
+    displayName: 'Maven Compile'
+    jobs:
+      - job: maven_compile
+        steps:
+        - task: Maven@4
+          inputs:
+           azureSubscription: 'devopshack-conn'
+           mavenPomFile: 'pom.xml'
+           goals: 'compile'
+           publishJUnitResults: true
+           testResultsFiles: '**/surefire-reports/TEST-*.xml'
+           javaHomeOption: 'JDKVersion'
+           mavenVersionOption: 'Default'
+           mavenAuthenticateFeed: false
+           effectivePomSkip: false
+           sonarQubeRunAnalysis: false
+
+  - stage: test
+    displayName: 'Maven Test'
+    jobs:
+      - job: maven_test
+        steps:
+          - task: Maven@4
+            inputs:
+             azureSubscription: 'devopshack-conn'
+             mavenPomFile: 'pom.xml'
+             goals: 'test'
+             publishJUnitResults: true
+             testResultsFiles: '**/surefire-reports/TEST-*.xml'
+             javaHomeOption: 'JDKVersion'
+             mavenVersionOption: 'Default'
+             mavenAuthenticateFeed: false
+             effectivePomSkip: false
+             sonarQubeRunAnalysis: false
+             
+  - stage: trivy_fs
+    displayName: 'Trivy FS Scan'
+    jobs:
+      - job: 'trivy_fs_scan'
+        displayName: 'Trivy FS Scan'
+        steps:
+          - task: CmdLine@2
+            inputs:
+             script: 'trivy fs --format table -o fs.html .'
+        
+  - stage: sonarqube
+    displayName: 'SonarAnalysis'
+    jobs:
+      - job: 'sonarqube_analysis'
+        steps: 
+          - task: SonarQubePrepare@7
+            inputs:
+              SonarQube: 'SonarQube Server'
+              scannerMode: 'cli'
+              configMode: 'manual'
+              cliProjectKey: 'bankapp'
+              cliProjectName: 'bankapp'
+              cliSources: '.'
+              extraProperties: 'sonar.java.binaries=.'
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                $params = "$env:SONARQUBE_SCANNER_PARAMS" -replace '"sonar.branch.name":"[\w,/,-]*"\,?'
+                    Write-Host "##vso[task.setvariable variable=SONARQUBE_SCANNER_PARAMS]$params"
+          - task: SonarQubeAnalyze@7
+            inputs:
+              jdkversion: 'JAVA_HOME_17_X64'
+
+  - stage: Publish_Artifacts
+    displayName: 'Publish_Build_Artifacts'
+    jobs:
+      - job: publish_artifacts
+        displayName: 'Publish_Build_Artifacts'
+        steps:
+          - task: Maven@4
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'deploy'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              mavenVersionOption: 'Default'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+          - task: MavenAuthenticate@0
+            inputs:
+              artifactsFeeds: 'devshack-maven'
