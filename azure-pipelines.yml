@@ -141,3 +141,11 @@ stages:
               repository: 'dev'
               command: 'push'
               tags: 'latest'
+
+  - stage:  deplo_to_aks
+    displayName: 'Deploy To AKS'
+    jobs:
+      - job: deploy_to_aks
+        displayName: 'Deploy To AKS'
+        steps:
+          
