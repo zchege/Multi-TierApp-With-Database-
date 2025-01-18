@@ -99,4 +99,3 @@ stages:
           - task: MavenAuthenticate@0
             inputs:
               artifactsFeeds: 'devshack-maven'
-              mavenServiceConnections: 'maven-auth'
