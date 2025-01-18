@@ -148,4 +148,10 @@ stages:
       - job: deploy_to_aks
         displayName: 'Deploy To AKS'
         steps:
-          
+          - task: KubernetesManifest@1
+            inputs:
+              action: 'deploy'
+              connectionType: 'kubernetesServiceConnection'
+              kubernetesServiceConnection: 'k8-con'
+              namespace: 'default'
+              manifests: 'ds.yml'
