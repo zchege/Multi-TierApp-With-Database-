@@ -32,9 +32,9 @@ metadata:
   labels:
     app: mysql
 spec:
-    ports:
+  ports:
     -  port: 3306
-    selector:
+  selector:
       app: mysql
 ---
 # Java Application Deployment
@@ -42,13 +42,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: bankapp
-  labels:
-    app: bankapp
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: bankapp
+  replicas: 1
   template:
     metadata:
       labels:
