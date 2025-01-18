@@ -84,6 +84,10 @@ stages:
       - job: publish_artifacts
         displayName: 'Publish_Build_Artifacts'
         steps:
+        
+          - task: MavenAuthenticate@0
+            inputs:
+              artifactsFeeds: 'devshack-maven'
           - task: Maven@4
             inputs:
               azureSubscription: 'devopshack-conn'
@@ -96,6 +100,27 @@ stages:
               mavenAuthenticateFeed: false
               effectivePomSkip: false
               sonarQubeRunAnalysis: false
-          - task: MavenAuthenticate@0
+          
+  - stage: docker_build
+    displayName: 'Docker_Build'
+    jobs:
+      - job: docker_build
+        displayName: 'Docker_Build'
+        steps:
+          - task: Docker@2
             inputs:
-              artifactsFeeds: 'devshack-maven'
+              containerRegistry: 'docker-svc'
+              repository: 'dev'
+              command: 'buildAndPush'
+              Dockerfile: '**/Dockerfile'
+              tags: 'latest'
+  
+  - stage: trivy_image_scan
+    displayName: 'Trivy Image Scan'
+    jobs:
+      - job: 'trivy_image_scan'
+        displayName: 'Trivy Image Scan'
+        steps:
+          - task: CmdLine@2
+            inputs:
+             script: 'trivy image --format table -o image.html devopsshackzwc.azurecr.io/dev:latest'
