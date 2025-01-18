@@ -15,25 +15,26 @@ spec:
         app: mysql
     spec:
       containers:
-      - image: mysql:8
-        name: mysql
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: "Test@123" 
-        - name: MYSQL_DATABASE
-          value: "bankappdb"
-        ports:
-        - containerPort: 3306
+        - image: mysql:8
+          name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "Test@123"
+            - name: MYSQL_DATABASE
+              value: "bankappdb"
+          ports:
+            - containerPort: 3306
 ---
+# MySQL Service
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql-service
 spec:
   ports:
-  - port: 3306
+    - port: 3306
   selector:
-      app: mysql
+    app: mysql
 ---
 # Java Application Deployment
 apiVersion: apps/v1
@@ -53,17 +54,17 @@ spec:
         app: bankapp
     spec:
       containers:
-      - name: bankapp
-        image: devopsshackzwc.azurecr.io/dev:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:mysql://mysql-service:3306/bankappdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-        - name: SPRING_DATASOURCE_USERNAME
-          value: root
-        - name: SPRING_DATASOURCE_PASSWORD
-          value: Test@123 
+        - name: bankapp
+          image: devopsshackzwc.azurecr.io/dev:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql-service:3306/bankappdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: Test@123
 ---
 # Bank Application Service
 apiVersion: v1
@@ -78,4 +79,3 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 8080
-
